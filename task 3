@@ -1,0 +1,70 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# 1. Create a Mock Dataset (Simulating TV, Radio, Newspaper Ads vs Sales)
+np.random.seed(42)
+n_samples = 200
+
+tv = np.random.uniform(10, 300, n_samples)
+radio = np.random.uniform(5, 50, n_samples)
+newspaper = np.random.uniform(5, 50, n_samples)
+
+# Sales has a strong correlation with TV and Radio, weak with Newspaper
+sales = 5 + 0.05 * tv + 0.18 * radio + 0.002 * newspaper + np.random.normal(0, 2, n_samples)
+
+df = pd.DataFrame({
+    'TV': tv,
+    'Radio': radio,
+    'Newspaper': newspaper,
+    'Sales': sales
+})
+
+print("--- First 5 Rows of the Dataset ---")
+print(df.head())
+print("\n" + "="*50 + "\n")
+
+# 2. Splitting Features (X) and Target (y)
+X = df[['TV', 'Radio', 'Newspaper']]
+y = df['Sales']
+
+# 3. Train-Test Split (80% Training, 20% Testing)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 4. Initialize and Train the Linear Regression Model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 5. Make Predictions on the Test Set (FIXED: Removed redundant .fit())
+y_pred = model.predict(X_test)
+
+# 6. Evaluate Model Performance (FIXED: Cleaned up walrus operators)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("--- Model Performance ---")
+print(f"Mean Squared Error (MSE): {mse:.2f}")
+print(f"R-squared (R2 Score): {r2:.2f}")
+print(f"Model Intercept: {model.intercept_:.2f}")
+print(f"Model Coefficients (TV, Radio, Newspaper): {model.coef_}")
+print("\n" + "="*50 + "\n")
+
+# 7. Visualization: Actual vs Predicted Sales
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=y_test, y=y_pred, color='blue', alpha=0.7)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red', lw=2, linestyle='--')
+plt.xlabel('Actual Sales')
+plt.ylabel('Predicted Sales')
+plt.title('Actual vs Predicted Sales (Linear Regression)')
+plt.grid(True)
+plt.show()
+
+# 8. Making a Prediction for a New Budget
+# Example: $150k on TV, $30k on Radio, $15k on Newspaper
+new_budget = pd.DataFrame([[150, 30, 15]], columns=['TV', 'Radio', 'Newspaper'])
+predicted_sales = model.predict(new_budget)
+print(f"Predicted Sales for the new advertising budget: {predicted_sales[0]:.2f} units")
